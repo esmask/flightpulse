@@ -1,0 +1,289 @@
+/* Airports.css */
+
+.airports-page {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #060a13, #04060f);
+  color: white;
+  padding-bottom: 80px;
+}
+
+/* HERO SECTION */
+.airports-hero {
+  position: relative;
+  height: 46vh;
+  margin: 40px auto;
+  width: 90%;
+  max-width: 1200px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 28px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(3px);
+}
+
+.hero-sub {
+  position: relative;
+  z-index: 5;
+  color: #4cc3ff;
+  letter-spacing: 3px;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.hero-title {
+  position: relative;
+  z-index: 5;
+  font-size: 3rem;
+  font-weight: 700;
+  text-shadow: 0 0 25px rgba(0,150,255,0.35);
+  margin-bottom: 10px;
+}
+
+.hero-desc {
+  position: relative;
+  z-index: 5;
+  font-size: 1.1rem;
+  color: #dbe4ff;
+  margin-bottom: 25px;
+}
+
+/* SEARCH BAR */
+.airport-search-bar {
+  position: relative;
+  z-index: 5;
+  margin-top: 15px;
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+
+.airport-search-bar input {
+  width: 330px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.1);
+  color: white;
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+  outline: none;
+  transition: 0.3s;
+}
+
+.airport-search-bar input:focus {
+  background: rgba(255,255,255,0.2);
+  border-color: #4cc3ff;
+}
+
+.airport-search-bar button {
+  padding: 14px 28px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, #0e76fd, #08c6f9);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: 0.3s;
+}
+
+.airport-search-bar button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(14, 118, 253, 0.4);
+}
+
+/* --- RESULTS SECTION --- */
+.airport-results {
+  padding: 40px 5%;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.error-msg {
+  color: #ff7b7b;
+  margin-top: 20px;
+  background: rgba(255, 0, 0, 0.1);
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 0, 0, 0.2);
+}
+
+/* ===========================
+   MODERN AIRPORT CARD
+=========================== */
+.airport-card {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  max-width: 900px;
+  background: rgba(20, 25, 40, 0.75);
+  backdrop-filter: blur(16px); /* GLASS EFFECT */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.6s ease-out forwards;
+  margin-top: 20px;
+}
+
+/* LEVA STRANA - INFO */
+.card-info {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  min-width: 300px;
+}
+
+/* Veliki IATA kod u pozadini */
+.iata-badge {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 5rem;
+  font-weight: 900;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.1);
+  user-select: none;
+  pointer-events: none;
+}
+
+.airport-name {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  background: linear-gradient(90deg, #fff, #4cc3ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.2;
+  position: relative;
+  z-index: 2;
+}
+
+.airport-location {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 1.2rem;
+  color: #cbd5f5;
+  margin-top: 5px;
+  position: relative;
+  z-index: 2;
+}
+
+.flag-icon {
+  width: 36px;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.coords {
+  margin-top: 30px;
+  font-family: 'Courier New', monospace;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 8px 16px;
+  border-radius: 8px;
+  display: inline-block;
+  color: #8899ac;
+  font-size: 0.9rem;
+  align-self: flex-start;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* DESNA STRANA - MAPA */
+.card-map {
+  flex: 1.2;
+  min-height: 380px;
+  background: #0d1117;
+  position: relative;
+}
+
+.mini-map {
+  width: 100%;
+  height: 100%;
+}
+
+.no-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #555;
+  font-style: italic;
+}
+
+/* --- ANIMATION --- */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- DEFAULT INFO SECTION --- */
+.airport-info-section {
+  margin-top: 60px;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.airport-facts {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+.fact-card {
+  background: rgba(255,255,255,0.06);
+  padding: 20px 30px;
+  border-radius: 18px;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.15);
+  min-width: 200px;
+}
+
+.fact-card h4 {
+  color: #4cc3ff;
+  font-size: 1.4rem;
+  margin-bottom: 5px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .airport-card {
+    flex-direction: column;
+  }
+  
+  .card-map {
+    height: 300px;
+    flex: none;
+  }
+
+  .iata-badge {
+    font-size: 3.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero-title { font-size: 2.2rem; }
+  .airport-search-bar { flex-direction: column; }
+  .airport-search-bar input { width: 100%; }
+  .airport-search-bar button { width: 100%; }
+}

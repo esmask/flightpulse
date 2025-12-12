@@ -1,0 +1,374 @@
+/* =========================================
+   1. PAGE LAYOUT & BACKGROUND
+========================================= */
+.search-page {
+  padding-bottom: 80px;
+  color: white;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #060a13, #04060f);
+  font-family: 'Inter', sans-serif;
+}
+
+/* =========================================
+   2. HERO SECTION (Zoom Animation)
+========================================= */
+.search-hero {
+  position: relative;
+  width: 100%;
+  max-width: 1150px;
+  height: 280px;
+  margin: 0 auto 40px auto;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.7);
+}
+
+.search-hero-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.05);
+  animation: heroZoom 18s ease-in-out infinite alternate;
+}
+
+.search-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      circle at top left,
+      rgba(0, 0, 0, 0.15),
+      transparent 55%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.65),
+      rgba(0, 0, 0, 0.95)
+    );
+  backdrop-filter: blur(4px);
+}
+
+.search-hero-content {
+  position: relative;
+  z-index: 5;
+  height: 100%;
+  padding: 32px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.search-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 0 18px rgba(0, 150, 255, 0.35);
+}
+
+@keyframes heroZoom {
+  from { transform: scale(1.05); }
+  to   { transform: scale(1.08); }
+}
+
+/* =========================================
+   3. SEARCH BAR
+========================================= */
+.search-bar {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  max-width: 600px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  transition: 0.3s;
+}
+
+.search-bar input:focus {
+  border-color: #4cc3ff;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.search-bar button {
+  padding: 14px 28px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, #0e76fd, #08c6f9);
+  cursor: pointer;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: 0.3s;
+}
+
+.search-bar button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 150, 255, 0.35);
+}
+
+/* =========================================
+   4. FILTERS
+========================================= */
+.filters {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding: 0 7% 30px;
+  flex-wrap: wrap;
+}
+
+.filters select {
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  cursor: pointer;
+  font-size: 0.95rem;
+  outline: none;
+  transition: 0.3s;
+}
+
+.filters select:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #4cc3ff;
+}
+
+.filters select option {
+  background: #0d1117;
+  color: white;
+}
+
+/* =========================================
+   5. LOADING / ERROR / EMPTY STATES
+========================================= */
+.loading-msg,
+.error-msg,
+.empty-state {
+  text-align: center;
+  margin-top: 40px;
+  color: #cbd5e1;
+}
+
+.error-msg {
+  color: #ff7b7b;
+  background: rgba(255, 0, 0, 0.1);
+  padding: 10px 20px;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.empty-state img {
+  width: 80px;
+  margin-bottom: 15px;
+  opacity: 0.6;
+}
+
+/* Spinner Loader */
+.loader-spinner {
+  width: 45px;
+  height: 45px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #0e76fd;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =========================================
+   6. RESULTS GRID
+========================================= */
+.results-grid {
+  padding: 20px 7%;
+  display: grid;
+  gap: 25px;
+  /* Auto-fill za bolju responsivnost */
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+/* =========================================
+   7. MODERN FLIGHT CARD (WOW Design)
+========================================= */
+.flight-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeIn 0.6s ease forwards;
+}
+
+.flight-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 35px rgba(14, 118, 253, 0.2);
+  border-color: rgba(14, 118, 253, 0.3);
+}
+
+/* HEADER: Logo + Callsign */
+.fc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fc-logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fc-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  background: white;
+  border-radius: 50%;
+  padding: 4px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.fc-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.fc-airline {
+  font-size: 0.8rem;
+  color: #4cc3ff;
+  display: block;
+  margin-top: 2px;
+}
+
+/* LIVE DOT */
+.live-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 12px #22c55e;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* BODY: Info Rows */
+.fc-body {
+  margin-bottom: 20px;
+}
+
+.fc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+}
+
+.fc-label {
+  color: #94a3b8;
+}
+
+.fc-val {
+  color: #f1f5f9;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fc-flag {
+  width: 24px;
+  height: 16px; /* Fix za lepši aspect ratio zastave */
+  object-fit: cover;
+  border-radius: 3px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* BUTTON */
+.fc-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #0e76fd, #08c6f9);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.fc-btn:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+  box-shadow: 0 8px 20px rgba(14, 118, 253, 0.3);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   8. RESPONSIVE
+========================================= */
+@media (max-width: 768px) {
+  .search-hero {
+    height: 220px;
+    margin-bottom: 30px;
+  }
+  
+  .search-title {
+    font-size: 2rem;
+  }
+  
+  .search-bar {
+    flex-direction: column;
+  }
+  
+  .search-bar input, 
+  .search-bar button {
+    width: 100%;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

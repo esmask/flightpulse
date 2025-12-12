@@ -1,0 +1,41 @@
+@import "leaflet/dist/leaflet.css";
+
+/* 🔹 Reset everything safely */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 🔹 Body reset */
+body {
+  width: 100%;
+  min-height: 100vh;
+  background: #020617;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* 🔹 Root wrapper */
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+
+/* 🔹 Our plane marker */
+.plane-icon {
+  background: none !important;
+}
+
+/* 🔹 REMOVE any unwanted backgrounds */
+div,
+section,
+main,
+article {
+  background-image: none !important;
+}

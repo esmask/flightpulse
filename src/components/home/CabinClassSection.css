@@ -1,0 +1,168 @@
+.cabin-section {
+  padding: 100px 10%;
+  background: #04060f; /* Tamna pozadina */
+}
+
+/* GLAVNI KONTEJNER: SIDE-BY-SIDE */
+.cabin-container {
+  display: flex;
+  gap: 40px; /* Razmak između menija i kartice */
+  align-items: stretch; /* Da budu iste visine */
+  margin-top: 40px;
+}
+
+/* --- LEVA STRANA: MENI --- */
+.cabin-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 250px;
+}
+
+.cabin-btn {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px 25px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.cabin-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(5px);
+}
+
+.cabin-btn.active {
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+}
+
+/* --- DESNA STRANA: KARTICA --- */
+.cabin-display {
+  flex: 1; /* Uzima sav preostali prostor */
+  background: rgba(20, 25, 40, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 30px;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  min-height: 400px;
+}
+
+.cabin-content {
+  flex: 1.5;
+  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 2;
+}
+
+.cabin-price-tag {
+  align-self: flex-start;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  color: white;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.cabin-content h3 {
+  font-size: 2.8rem;
+  margin-bottom: 15px;
+  color: white;
+}
+
+.cabin-content p {
+  color: #cbd5e1;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 35px;
+}
+
+.cabin-features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.feat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #e2e8f0;
+  font-size: 1rem;
+}
+
+/* DESNI DEO KARTICE (VISUAL) */
+.cabin-image-area {
+  flex: 1;
+  position: relative;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.05), transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.bg-icon {
+  font-size: 15rem;
+  opacity: 0.2;
+  transform: rotate(-15deg);
+  filter: drop-shadow(0 0 30px currentColor);
+  animation: floatIcon 6s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+  0%, 100% { transform: rotate(-15deg) translateY(0); }
+  50% { transform: rotate(-10deg) translateY(-20px); }
+}
+
+/* RESPONSIVE (MOBILNI) */
+@media (max-width: 900px) {
+  .cabin-container {
+    flex-direction: column; /* Vraća se jedno ispod drugog na telefonu */
+  }
+
+  .cabin-sidebar {
+    flex-direction: row;
+    overflow-x: auto; /* Scroll levo-desno za dugmice */
+    min-width: 100%;
+  }
+
+  .cabin-btn {
+    padding: 15px;
+    flex: 1;
+    justify-content: center;
+    min-width: 120px;
+  }
+
+  .cabin-display {
+    flex-direction: column;
+  }
+
+  .cabin-image-area {
+    height: 200px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+}

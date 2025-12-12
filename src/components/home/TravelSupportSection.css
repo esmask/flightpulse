@@ -1,0 +1,67 @@
+.ts-section {
+  padding: 80px 10%;
+  background: #04060f;
+}
+
+.ts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.ts-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+.ts-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-10px);
+  border-color: #4cc3ff;
+}
+
+.ts-icon {
+  font-size: 2.5rem;
+  color: #00e5ff;
+  margin-bottom: 20px;
+}
+
+.ts-card h3 {
+  color: white;
+  margin-bottom: 10px;
+  font-size: 1.3rem;
+}
+
+.ts-card p {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.ts-footer {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.ts-btn {
+  background: transparent;
+  color: #4cc3ff;
+  border: 1px solid rgba(76, 195, 255, 0.3);
+  padding: 12px 30px;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.ts-btn:hover {
+  background: rgba(76, 195, 255, 0.1);
+  color: white;
+  border-color: #00e5ff;
+}
