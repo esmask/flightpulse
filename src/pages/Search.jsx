@@ -1,306 +1,165 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { FaPlane, FaSearchMinus, FaLightbulb, FaGlobe, FaArrowRight } from "react-icons/fa";
 import "./Search.css";
 import searchHero from "../assets/search_hero.jpg";
-import { useNavigate } from "react-router-dom";
 
-// 1. MAPA ZA IMENA AVIOKOMPANIJA (Samo kao pomoć za lepši ispis)
 const airlineMap = {
-  WZZ: "Wizz Air", W6: "Wizz Air",
-  RYR: "Ryanair", FR: "Ryanair",
-  EZY: "EasyJet", U2: "EasyJet",
-  AUA: "Austrian", OS: "Austrian",
-  THY: "Turkish Airlines", TK: "Turkish Airlines",
-  DLH: "Lufthansa", LH: "Lufthansa",
-  SWR: "Swiss", LX: "Swiss",
-  BAW: "British Airways", BA: "British Airways",
-  AFR: "Air France", AF: "Air France",
-  JAT: "Air Serbia", JU: "Air Serbia",
-  QTR: "Qatar Airways", QR: "Qatar Airways",
-  UAE: "Emirates", EK: "Emirates",
-  DAL: "Delta", DL: "Delta",
-  UAL: "United", UA: "United"
+  WZZ: "Wizz Air", THY: "Turkish Airlines", AUA: "Austrian", SWR: "Swiss", DLH: "Lufthansa", EWG: "Eurowings"
 };
 
-// 2. MAPA ZA KODOVE DRŽAVA (Za zastave)
-const countryToCode = {
-  "United States": "US", "USA": "US",
-  "United Kingdom": "GB", "Great Britain": "GB",
-  "Germany": "DE", "France": "FR", "Italy": "IT", "Spain": "ES",
-  "Turkey": "TR", "Switzerland": "CH", "Austria": "AT", "Poland": "PL",
-  "Netherlands": "NL", "Belgium": "BE", "Greece": "GR", "Hungary": "HU",
-  "Kosovo": "XK", "Republic of Kosovo": "XK", "Albania": "AL",
-  "Serbia": "RS", "Croatia": "HR", "China": "CN", "Japan": "JP",
-  "Canada": "CA", "Australia": "AU", "Brazil": "BR", "Qatar": "QA",
-  "United Arab Emirates": "AE", "Portugal": "PT", "Ireland": "IE",
-  "Sweden": "SE", "Norway": "NO", "Russia": "RU", "India": "IN"
+const ROUTE_INFO_DATA = {
+  "Zurich": { airline: "Swiss, Edelweiss", duration: "2h 05m", info: "Daily direct flights from Prishtina.", link: "https://www.swiss.com" },
+  "Istanbul": { airline: "Turkish Airlines, Pegasus", duration: "1h 45m", info: "Up to 4 flights per day from PRN.", link: "https://www.turkishairlines.com" },
+  "London": { airline: "Wizz Air", duration: "3h 10m", info: "Direct flights to London Luton (LTN).", link: "https://wizzair.com" },
+  "Munich": { airline: "Lufthansa, Eurowings", duration: "1h 50m", info: "Connecting Prishtina to Bavaria daily.", link: "https://www.lufthansa.com" }
 };
 
-// --- HELPERS ---
-
-function detectAirline(callsign) {
-  if (!callsign) return "Unknown Airline";
-  const prefix = callsign.slice(0, 3).toUpperCase();
-  return airlineMap[prefix] || prefix + " Airlines";
-}
-
-function getAirlineLogo(callsign) {
-  if (!callsign) return null;
-  const prefix = callsign.slice(0, 2).toUpperCase();
-  return `https://images.kiwi.com/airlines/64/${prefix}.png`;
-}
-
-function getFlag(countryName) {
-  if (!countryName) return null;
-  const cleanName = countryName.trim();
-  
-  // KOSOVO FIX
-  if (cleanName === "Kosovo" || cleanName === "Republic of Kosovo" || cleanName === "XK" || cleanName === "KS") {
-    return "https://flagcdn.com/w80/xk.png";
-  }
-
-  // Traži kod u mapi
-  let code = countryToCode[cleanName];
-  
-  // Ako nema u mapi, probaj prva 2 slova (fallback)
-  if (!code && cleanName.length === 2) code = cleanName;
-
-  if (code) return `https://flagsapi.com/${code.toUpperCase()}/flat/64.png`;
-  return null;
-}
+const AVIATION_FACTS = [
+  "The shortest commercial flight in the world lasts only 57 seconds.",
+  "At any moment, there are over 10,000 aircraft in the sky.",
+  "Prishtina Airport handled over 3 million passengers last year!",
+  "A Boeing 747 is made up of six million parts."
+];
 
 export default function Search() {
-  const [allFlights, setAllFlights] = useState([]); // Svi učitani letovi
-  const [displayed, setDisplayed] = useState([]);   // Oni koji se vide na ekranu
+  const [allFlights, setAllFlights] = useState([]);
+  const [displayed, setDisplayed] = useState([]);
   const [query, setQuery] = useState("");
+  const [routeInfo, setRouteInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [fact, setFact] = useState("");
 
-  // Dinamičke liste za filtere (popunjavaju se same)
-  const [availableCountries, setAvailableCountries] = useState([]);
-  const [availableAirlines, setAvailableAirlines] = useState([]);
-
-  // Izabrani filteri
-  const [airlineFilter, setAirlineFilter] = useState("");
-  const [countryFilter, setCountryFilter] = useState("");
-  const [speedSort, setSpeedSort] = useState("");
-
+  const location = useLocation();
   const navigate = useNavigate();
 
-  // === 1. UČITAVANJE LETOVA ===
+  // Pomocne funkcije za UI
+  const detectAirline = (callsign) => airlineMap[callsign?.slice(0, 3).toUpperCase()] || "Global Airline";
+  const getAirlineLogo = (callsign) => `https://images.kiwi.com/airlines/64/${callsign?.slice(0, 2).toUpperCase()}.png`;
+
   useEffect(() => {
+    setFact(AVIATION_FACTS[Math.floor(Math.random() * AVIATION_FACTS.length)]);
+    
     async function load() {
       setLoading(true);
-      setErrorMsg("");
-
       try {
         const res = await axios.get("http://localhost:5000/live-flights");
-        const rawData = res.data.states || [];
+        const flights = res.data.states || [];
+        setAllFlights(flights);
 
-        // Filtriramo samo validne (moraju imati koordinate i ime)
-        const validFlights = rawData.filter(f => f.callsign && f.lat && f.lon);
-
-        if (validFlights.length === 0) {
-          setErrorMsg("Backend is running but no flights found right now.");
+        const params = new URLSearchParams(location.search);
+        const cityParam = params.get("query");
+        
+        if (cityParam) {
+          setQuery(cityParam);
+          setRouteInfo(ROUTE_INFO_DATA[cityParam] || null);
+          const filtered = flights.filter(f => 
+            f.destination?.toLowerCase().includes(cityParam.toLowerCase()) || 
+            f.country?.toLowerCase().includes(cityParam.toLowerCase())
+          );
+          setDisplayed(filtered);
+        } else {
+          setDisplayed(flights.slice(0, 40));
         }
-
-        setAllFlights(validFlights);
-        setDisplayed(validFlights.slice(0, 60)); // Prikaži prvih 60 odmah
-
-        // --- DINAMIČKO PUNJENJE FILTERA ---
-        // Izvlačimo sve jedinstvene države koje se trenutno vide
-        const countries = [...new Set(validFlights.map(f => f.country).filter(Boolean))].sort();
-        setAvailableCountries(countries);
-
-        // Izvlačimo sve jedinstvene aviokompanije
-        const airlines = [...new Set(validFlights.map(f => detectAirline(f.callsign)))].sort();
-        setAvailableAirlines(airlines);
-
-      } catch (err) {
-        console.error(err);
-        setErrorMsg("Could not load flights. Is the backend running?");
-      } finally {
-        setLoading(false);
-      }
+      } catch (err) { console.error(err); }
+      setLoading(false);
     }
     load();
-  }, []);
+  }, [location.search]);
 
-  // === 2. PRETRAGA (Search Bar) ===
   function handleSearch() {
-    // Ako je prazno, samo primeni filtere na sve
-    if (!query.trim()) {
-      applyFilters(allFlights);
-      return;
-    }
-
+    setRouteInfo(ROUTE_INFO_DATA[query] || null);
     const q = query.toLowerCase();
-    
-    // Filtriraj po unetom tekstu
-    const found = allFlights.filter((f) => {
-      const callsignMatch = f.callsign?.toLowerCase().includes(q);
-      const countryMatch = f.country?.toLowerCase().includes(q);
-      const airlineMatch = detectAirline(f.callsign).toLowerCase().includes(q);
-      
-      return callsignMatch || countryMatch || airlineMatch;
-    });
-
-    if (found.length === 0) setErrorMsg("No flights match your search.");
-    else setErrorMsg("");
-
-    // Primeni i sortiranje na rezultate pretrage
-    applyFilters(found); 
+    const found = allFlights.filter(f => 
+      f.callsign?.toLowerCase().includes(q) || 
+      f.destination?.toLowerCase().includes(q) ||
+      f.country?.toLowerCase().includes(q)
+    );
+    setDisplayed(found);
   }
-
-  // === 3. FILTER LOGIKA ===
-  function applyFilters(sourceData = allFlights) {
-    let result = [...sourceData];
-
-    // Filter Airline
-    if (airlineFilter) {
-      result = result.filter(f => detectAirline(f.callsign) === airlineFilter);
-    }
-
-    // Filter Country
-    if (countryFilter) {
-      result = result.filter(f => f.country === countryFilter);
-    }
-
-    // Sort Speed
-    if (speedSort === "asc") {
-      result.sort((a, b) => (a.speed || 0) - (b.speed || 0));
-    } else if (speedSort === "desc") {
-      result.sort((a, b) => (b.speed || 0) - (a.speed || 0));
-    }
-
-    setDisplayed(result.slice(0, 60)); // Limit da ne koči browser
-  }
-
-  // Prati promene u dropdown menijima
-  useEffect(() => {
-    applyFilters(allFlights);
-  }, [airlineFilter, countryFilter, speedSort]);
 
   return (
     <div className="search-page">
-
-      {/* HERO SECTION */}
       <section className="search-hero">
         <div className="search-hero-bg" style={{ backgroundImage: `url(${searchHero})` }}></div>
         <div className="search-hero-overlay"></div>
         <div className="search-hero-content">
-          <h1 className="search-title">Search Flights</h1>
+          <h1>Flight Explorer</h1>
           <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Search Flight ID, Country or Airline..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            />
+            <input type="text" placeholder="Search city, country or airline..." value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSearch()} />
             <button onClick={handleSearch}>Search</button>
           </div>
         </div>
       </section>
 
-      {/* --- DINAMIČKI FILTERI --- */}
-      <div className="filters">
-        
-        {/* Dropdown za Aviokompanije (Puni se sam) */}
-        <select onChange={(e) => setAirlineFilter(e.target.value)}>
-          <option value="">✈️ All Airlines ({availableAirlines.length})</option>
-          {availableAirlines.map((airline, index) => (
-            <option key={index} value={airline}>{airline}</option>
-          ))}
-        </select>
-
-        {/* Dropdown za Države (Puni se sam) */}
-        <select onChange={(e) => setCountryFilter(e.target.value)}>
-          <option value="">🌍 All Countries ({availableCountries.length})</option>
-          {availableCountries.map((country, index) => (
-            <option key={index} value={country}>{country}</option>
-          ))}
-        </select>
-
-        {/* Sortiranje */}
-        <select onChange={(e) => setSpeedSort(e.target.value)}>
-          <option value="">⚡ Sort by Speed</option>
-          <option value="asc">Slower First</option>
-          <option value="desc">Faster First</option>
-        </select>
-      </div>
-
-      {/* LOADING */}
-      {loading && (
-        <div className="loading-msg">
-          <div className="loader-spinner"></div>
-          <p>Scanning global airspace...</p>
-        </div>
-      )}
-
-      {/* ERROR / EMPTY STATE */}
-      {!loading && displayed.length === 0 && (
-        <div className="empty-state">
-          <img src="https://cdn-icons-png.flaticon.com/512/7486/7486809.png" alt="No results" width="80" />
-          <p>{errorMsg || "No flights found matching criteria."}</p>
-        </div>
-      )}
-
-      {/* --- REZULTATI (KARTICE) --- */}
-      <div className="results-grid">
-        {displayed.map((f, i) => {
-          const airlineName = detectAirline(f.callsign);
-          const flagUrl = getFlag(f.country);
-          const logoUrl = getAirlineLogo(f.callsign); 
-
-          return (
-            <div className="flight-card" key={i}>
-              
-              {/* HEADER KARTICE */}
-              <div className="fc-header">
-                <div className="fc-logo-wrap">
-                  {/* Logo Aviokompanije */}
-                  <img 
-                    src={logoUrl} 
-                    alt="logo" 
-                    className="fc-logo"
-                    onError={(e) => e.target.style.display = 'none'} 
-                  />
-                  <div>
-                    <h3>{f.callsign}</h3>
-                    <span className="fc-airline">{airlineName}</span>
-                  </div>
-                </div>
-                <div className="live-dot"></div> {/* Zelena tačkica */}
+      {/* ROUTE INFO PANEL */}
+      {routeInfo && (
+        <div className="route-info-panel fade-in">
+          <div className="ri-content">
+            <div className="ri-main">
+              <span className="ri-badge">PRN DIRECT ROUTE</span>
+              <h2>Prishtina ✈ {query}</h2>
+              <p>{routeInfo.info}</p>
+              <div className="ri-stats">
+                <span>⏱ Duration: <strong>{routeInfo.duration}</strong></span>
+                <span style={{margin: "0 15px"}}>|</span>
+                <span>Airlines: <strong>{routeInfo.airline}</strong></span>
               </div>
-
-              {/* PODACI */}
-              <div className="fc-body">
-                <div className="fc-row">
-                  <span className="fc-label">Country</span>
-                  <div className="fc-val">
-                    {flagUrl && <img src={flagUrl} alt="flag" className="fc-flag" />}
-                    {f.country || "Intl. Airspace"}
-                  </div>
-                </div>
-
-                <div className="fc-row">
-                  <span className="fc-label">Speed</span>
-                  <span className="fc-val">{Math.round((f.speed || 0) * 3.6)} km/h</span>
-                </div>
-
-                <div className="fc-row">
-                  <span className="fc-label">Altitude</span>
-                  <span className="fc-val">{Math.round(f.alt || 0)} m</span>
-                </div>
-              </div>
-
-              <button className="fc-btn" onClick={() => navigate(`/flight/${f.callsign}`)}>
-                Track Live ✈
-              </button>
             </div>
-          );
-        })}
+            <div className="ri-side">
+              <a href={routeInfo.link} target="_blank" rel="noreferrer" className="book-btn">Book Tickets ↗</a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="results-container">
+        {loading ? (
+          <div className="loading-msg"><div className="loader-spinner"></div><p>Scanning global airspace...</p></div>
+        ) : displayed.length > 0 ? (
+          <div className="results-grid">
+            {displayed.map((f, i) => (
+              <div className="flight-card" key={i}>
+                <div className="fc-header">
+                  <div className="fc-logo-wrap">
+                    <img src={getAirlineLogo(f.callsign)} alt="" className="fc-logo" />
+                    <div>
+                      <h3>{f.callsign}</h3>
+                      <span className="fc-airline">{detectAirline(f.callsign)}</span>
+                    </div>
+                  </div>
+                  <div className="live-dot"></div>
+                </div>
+
+                {/* PRIKAZ RUTE NA KARTICI - POPRAVLJENO */}
+                <div className="fc-route-path">
+                  <span>{f.origin || "PRN"}</span>
+                  <div className="route-line-ui">
+                    <span className="plane-mini-icon">✈</span>
+                  </div>
+                  <span>{f.destination || "Any"}</span>
+                </div>
+
+                <div className="fc-body">
+                  <div className="fc-row"><span className="fc-label">Country</span><span className="fc-val">{f.country}</span></div>
+                  <div className="fc-row"><span className="fc-label">Speed</span><span className="fc-val">{f.speed} km/h</span></div>
+                </div>
+                <button className="fc-btn" onClick={() => navigate(`/flight/${f.callsign}`)}>Track Live</button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state-container fade-in">
+            <FaSearchMinus size={50} color="#374151" />
+            <h2>No live flights found</h2>
+            <div className="fact-box">
+              <FaLightbulb color="#0e76fd" /> <strong>Did you know?</strong>
+              <p>{fact}</p>
+            </div>
+            <button className="reset-btn" onClick={() => { setQuery(""); navigate("/search"); }}>Show All Flights</button>
+          </div>
+        )}
       </div>
     </div>
   );

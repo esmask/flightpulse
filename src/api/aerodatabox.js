@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_KEY = "78acb83b19msh56397fbb3a839a9p1a8170jsnb07b971ede10";
+const API_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
 const API_HOST = "aerodatabox.p.rapidapi.com";
 
 export async function getAirportFlights(iata) {

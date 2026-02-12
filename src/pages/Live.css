@@ -43,3 +43,48 @@
   background: none !important;
   border: none !important;
 }
+.hub-info-bar {
+  display: flex;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+}
+
+.hub-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.hub-icon {
+  color: #0e76fd;
+  font-size: 1.1rem;
+}
+
+.hub-icon.blue {
+  color: #00d4ff;
+}
+
+.live-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+/* Stil za loader mape */
+.map-loader {
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0e76fd;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}

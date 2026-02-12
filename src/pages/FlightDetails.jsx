@@ -6,13 +6,15 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./FlightDetails.css";
 
-// HELPER: Rotirana ikonica aviona
+// --- HELPER FUNKCIJE (TVOJE ORIGINALNE) ---
+
+// 1. Rotirana ikonica aviona
 const createRotatedPlaneIcon = (heading) => {
   return L.divIcon({
     className: "custom-plane-icon",
     html: `
       <div style="
-        transform: rotate(${heading - 45}deg); 
+        transform: rotate(${(heading || 0) - 45}deg); 
         width: 100%; 
         height: 100%; 
         display: flex; 
@@ -28,14 +30,14 @@ const createRotatedPlaneIcon = (heading) => {
   });
 };
 
-// HELPER: Logo aviokompanije
+// 2. Logo aviokompanije
 const getAirlineLogo = (callsign) => {
   if (!callsign) return null;
   const prefix = callsign.slice(0, 2).toUpperCase();
   return `https://images.kiwi.com/airlines/64/${prefix}.png`;
 };
 
-// 1. MAPA IMENA KOMPANIJA
+// 3. Mapa imena kompanija
 const airlineMap = {
   WZZ: "Wizz Air", RYR: "Ryanair", AUA: "Austrian",
   Lufthansa: "Lufthansa", SWR: "Swiss", BAW: "British Airways",
@@ -43,7 +45,7 @@ const airlineMap = {
   JAT: "Air Serbia", DLH: "Lufthansa", UAE: "Emirates"
 };
 
-// 2. NOVA MAPA DRŽAVA (Ime -> Kod)
+// 4. Mapa država (Ime -> Kod)
 const countryToCode = {
   "Austria": "AT",
   "Germany": "DE",
@@ -61,23 +63,16 @@ const countryToCode = {
   "Kosovo": "XK"
 };
 
-// 3. FUNKCIJA ZA ZASTAVU
+// 5. Funkcija za zastavu
 const getFlagUrl = (countryName) => {
   if (!countryName) return null;
-  
-  // Specijalno za Kosovo (jer flagsapi zeza za XK)
   if (countryName === "Kosovo") return "https://flagcdn.com/w80/xk.png";
-
-  // Za ostale nadji kod
   const code = countryToCode[countryName];
-  
-  if (code) {
-    return `https://flagsapi.com/${code}/flat/64.png`;
-  }
-  
-  // Fallback (ako ne nadjemo drzavu, ne prikazuj nista ili stavi neku default ikonicu)
+  if (code) return `https://flagsapi.com/${code}/flat/64.png`;
   return null; 
 };
+
+// --- GLAVNA KOMPONENTA ---
 
 export default function FlightDetails() {
   const { id } = useParams();
@@ -91,21 +86,23 @@ export default function FlightDetails() {
 
   useEffect(() => {
     async function load() {
+      if (!id) return;
       try {
-        const res = await axios.get(`http://localhost:5000/flight/${id}`);
+        // Dodajemo .trim() da izbegnemo razmake u URL-u
+        const res = await axios.get(`http://localhost:5000/flight/${id.trim()}`);
         
-        if (res.data.found) {
+        if (res.data && res.data.found) {
           const f = res.data.flight;
           setFlight(f);
           
-          // Generisanje putanje
           setHistory(prev => {
             if (prev.length > 0) {
+              // Dodajemo novu tačku ako se avion pomerio
               return [...prev, [f.lat, f.lon]].slice(-50);
             } else {
+              // Generisanje početne putanje (tvoj originalni kod)
               const fakePath = [];
-              const headingRad = (f.track - 180) * (Math.PI / 180);
-              
+              const headingRad = ((f.track || 0) - 180) * (Math.PI / 180);
               for (let i = 20; i > 0; i--) {
                 fakePath.push([
                   f.lat + (i * 0.002 * Math.cos(headingRad)), 
@@ -116,9 +113,11 @@ export default function FlightDetails() {
               return fakePath;
             }
           });
+        } else {
+          setFlight(null); // Ovo se dešava ako backend vrati found: false
         }
       } catch (err) {
-        console.error("Error fetching flight details");
+        console.error("Error fetching flight data:", err);
       } finally {
         setLoading(false);
       }
@@ -129,6 +128,7 @@ export default function FlightDetails() {
     return () => clearInterval(interval);
   }, [id]);
 
+  // Automatsko pomeranje mape na avion
   useEffect(() => {
     if (flight && mapRef.current) {
       mapRef.current.flyTo([flight.lat, flight.lon], mapRef.current.getZoom());
@@ -147,10 +147,9 @@ export default function FlightDetails() {
 
   const logo = getAirlineLogo(flight.callsign);
   const airlineName = airlineMap[flight.callsign.slice(0,3)] || "International Airline";
-  const speedKmh = Math.round((flight.speed || 0) * 3.6);
+  // Speed konverzija (čvorovi u km/h ako već nije odrađeno na backendu)
+  const speedKmh = Math.round((flight.speed || 0) * 1.852);
   const altitude = Math.round(flight.alt || 0);
-  
-  // Ovde pozivamo funkciju za zastavu
   const flagUrl = getFlagUrl(flight.country);
 
   return (
@@ -210,7 +209,6 @@ export default function FlightDetails() {
             </div>
           </div>
 
-           {/* COUNTRY (Sada sa ispravnom zastavom) */}
            <div className="fd-card flag-card">
             <h3>Origin / Region</h3>
             <div className="country-display">
@@ -222,13 +220,14 @@ export default function FlightDetails() {
         </div>
 
         {/* DESNO: MAPA */}
-        <div className="fd-map-container">
+        <div className="fd-map-container" style={{ height: "500px", minHeight: "500px", position: "relative" }}>
           <MapContainer 
             center={[flight.lat, flight.lon]} 
             zoom={10} 
             className="fd-map"
             zoomControl={false}
             ref={mapRef}
+            style={{ height: "100%", width: "100%" }}
           >
             <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
             <Polyline positions={history} color="#00e5ff" weight={4} opacity={0.6} dashArray="10, 10" />

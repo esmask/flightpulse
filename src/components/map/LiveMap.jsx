@@ -5,14 +5,12 @@ import L from "leaflet";
 import { useNavigate } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 
-// REGIONS CONFIGURATION
 const REGION_CONFIG = {
   global: { center: [25, 0], zoom: 3 },
   europe: { center: [50, 10], zoom: 5 },
-  kosovo: { center: [42.66, 21.16], zoom: 8 },
+  kosovo: { center: [42.66, 21.16], zoom: 9 }, // Malo jači zoom za Kosovo
 };
 
-// ★ HELPER: Kreira ikonicu koja je rotirana za 'heading' stepeni
 const createRotatedPlaneIcon = (heading) => {
   return L.divIcon({
     className: "custom-plane-icon",
@@ -25,26 +23,17 @@ const createRotatedPlaneIcon = (heading) => {
         align-items: center; 
         justify-content: center;
       ">
-        <img src="/plane_icon.png" style="width: 38px; height: 38px; filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));" />
+        <img src="/plane_icon.png" style="width: 32px; height: 32px; filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));" />
       </div>
     `,
     iconSize: [40, 40],
-    iconAnchor: [20, 20], // Centar rotacije
+    iconAnchor: [20, 20], 
   });
 };
 
-// ★ HELPER: Nalazi logo aviokompanije na osnovu callsign-a
 const getAirlineLogo = (callsign) => {
   if (!callsign || callsign.length < 3) return null;
-  // Uzimamo prva 2 slova (IATA) ili 3 slova (ICAO) za logo
-  // Kiwi API koristi IATA kodove (npr W6 za Wizz, ali airplanes.live vraća WZZ)
-  // Za Hackathon svrhu, koristićemo generički placeholder ako ne nađemo, 
-  // ili specifične mapirane ako želiš (kao u Search.jsx).
-  // Ovde koristimo jedan trik sa 'airhex' ili 'content.r9cdn.net' ako imaš pristup,
-  // ali za free varijantu, Kiwi je najbolji ako imamo IATA kod.
-  // Pošto API vraća ICAO (WZZ), logo se možda neće videti za sve, ali za neke hoće.
-  
-  const code = callsign.substring(0, 2).toUpperCase(); 
+  const code = callsign.substring(0, 3).toUpperCase(); // Većina airline kodova su 3 slova (npr WZZ, THY)
   return `https://images.kiwi.com/airlines/64/${code}.png`;
 };
 
@@ -53,10 +42,8 @@ export default function LiveMap({ region, search }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // FETCH DATA
   useEffect(() => {
     async function load() {
-      // Prvo učitavanje može prikazati loader, posle samo update-uje pozicije
       try {
         const res = await axios.get("http://localhost:5000/live-flights");
         setFlights(res.data.states || []);
@@ -65,15 +52,11 @@ export default function LiveMap({ region, search }) {
       }
       setLoading(false);
     }
-
     load();
-    
-    // Refresh svakih 5 sekundi za glatko pomeranje
     const refresh = setInterval(load, 5000);
     return () => clearInterval(refresh);
   }, []);
 
-  // FILTER LOGIC
   const filtered = useMemo(() => {
     let list = flights.filter(
       (f) => typeof f.lat === "number" && typeof f.lon === "number"
@@ -85,28 +68,25 @@ export default function LiveMap({ region, search }) {
         f.callsign?.toLowerCase().includes(q)
       );
     }
-
-    // Limitiramo na 300 aviona da ne "ugušimo" browser
     return list.slice(0, 300);
   }, [flights, search]);
 
   const cfg = REGION_CONFIG[region] || REGION_CONFIG.global;
 
-  if (loading) return <div style={{ color: "white", padding: "20px" }}>Loading Radar...</div>;
+  if (loading) return <div className="map-loader">Connecting to Global Radar...</div>;
 
   return (
     <MapContainer
-      key={region} // Ovo forsira re-render kad se promeni region (da centrira mapu)
+      key={region} 
       center={cfg.center}
       zoom={cfg.zoom}
       scrollWheelZoom={true}
       className="leaflet-container"
-      style={{ background: "#060a13" }} // Tamna pozadina dok se pločice ne učitaju
+      style={{ background: "#060a13" }} 
     >
-      {/* Dark Mode Mapa (CartoDB DarkMatter) - Mnogo bolje izgleda za radar! */}
       <TileLayer 
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        attribution='&copy; FlightPulse Global'
       />
 
       {filtered.map((f, i) => {
@@ -116,7 +96,7 @@ export default function LiveMap({ region, search }) {
 
         return (
           <Marker
-            key={f.callsign || i} // Bolje koristiti callsign kao key ako je unique
+            key={f.callsign || i}
             position={[f.lat, f.lon]}
             icon={createRotatedPlaneIcon(heading)}
             eventHandlers={{
@@ -124,39 +104,25 @@ export default function LiveMap({ region, search }) {
             }}
           >
             <Popup className="custom-popup">
-              <div style={{ textAlign: "center" }}>
-                {/* Logo u Popup-u */}
+              <div style={{ textAlign: "center", minWidth: "140px" }}>
                 <img 
                   src={logoUrl} 
-                  alt="Airline" 
-                  style={{ height: "30px", marginBottom: "5px", display: "block", margin: "0 auto" }}
-                  onError={(e) => e.target.style.display = 'none'} // Sakrij ako nema loga
+                  alt="" 
+                  style={{ height: "25px", marginBottom: "8px" }}
+                  onError={(e) => e.target.style.display = 'none'}
                 />
-                
-                <strong style={{ fontSize: "1.1rem", color: "#0e76fd" }}>
-                  {f.callsign || "N/A"}
-                </strong>
-                
-                <div style={{ marginTop: "6px", fontSize: "0.9rem", color: "#333", lineHeight: "1.4" }}>
-                  🚀 {kmh} km/h <br />
-                  📡 {Math.round(f.alt || 0)} m <br />
-                  🧭 {Math.round(heading)}°
+                <div style={{ fontWeight: "bold", fontSize: "1.1rem", color: "#0e76fd" }}>
+                  {f.callsign || "UNKNOWN"}
                 </div>
-                
+                <div style={{ margin: "8px 0", fontSize: "0.85rem", borderTop: "1px solid #eee", paddingTop: "5px" }}>
+                  <p>速度: <strong>{kmh} km/h</strong></p>
+                  <p>高度: <strong>{Math.round(f.alt || 0)} m</strong></p>
+                </div>
                 <button 
-                  style={{
-                    marginTop: "8px",
-                    background: "#0e76fd",
-                    color: "white",
-                    border: "none",
-                    padding: "4px 10px",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    fontSize: "0.8rem"
-                  }}
+                  className="popup-btn"
                   onClick={() => navigate(`/flight/${f.callsign}`)}
                 >
-                  View Details
+                  Flight Details
                 </button>
               </div>
             </Popup>

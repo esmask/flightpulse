@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Dodat useEffect
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -18,33 +18,35 @@ export default function Airports() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ★ FUNKCIJA KOJA POPRAVLJA ZASTAVU
-// ★ NOVA PAMETNA FUNKCIJA ZA ZASTAVE
+  // ★ OVO JE DODATO: Čim se stranica učita, traži Prištinu
+  useEffect(() => {
+    searchAirport("Prishtina");
+  }, []);
+
   function getFlag(countryCode) {
     if (!countryCode) return null;
     let code = countryCode.toUpperCase();
     
-    // 1. KOSOVO FIX: flagsapi puca za XK, zato koristimo flagcdn.com
     if (code === "KS" || code === "XK") {
       return "https://flagcdn.com/w80/xk.png";
     }
 
-    // 2. UK FIX
     if (code === "UK") code = "GB";
 
-    // 3. Za sve ostale koristi flagsapi (jer su lepše ikonice)
     return `https://flagsapi.com/${code}/flat/64.png`;
   }
   
-  async function searchAirport() {
-    if (!query.trim()) return;
+  // Malo izmenjena funkcija da prihvati "initialQuery" za prvi put
+  async function searchAirport(initialQuery) {
+    const searchTerm = initialQuery || query; // Ako ima initialQuery koristi njega, ako ne koristi onaj iz inputa
+    if (!searchTerm.trim()) return;
 
     setLoading(true);
     setError("");
     setResult(null);
 
     try {
-      const res = await fetch(`http://localhost:5000/airports?search=${query}`);
+      const res = await fetch(`http://localhost:5000/airports?search=${searchTerm}`);
       const data = await res.json();
 
       if (!data || data.length === 0) {
@@ -56,7 +58,7 @@ export default function Airports() {
           name: airport.name,
           iata: airport.iata || "N/A",
           city: airport.municipalityName || airport.city || "Unknown",
-          country: airport.countryCode || "Unknown", // Ovo je obično 2 slova (npr KS, DE)
+          country: airport.countryCode || "Unknown", 
           lat: airport.location?.lat,
           lon: airport.location?.lon
         });
@@ -83,7 +85,7 @@ export default function Airports() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && searchAirport()}
           />
-          <button onClick={searchAirport}>{loading ? "..." : "Search"}</button>
+          <button onClick={() => searchAirport()}>{loading ? "..." : "Search"}</button>
         </div>
       </div>
 
@@ -98,7 +100,6 @@ export default function Airports() {
               <h2 className="airport-name">{result.name}</h2>
               <div className="airport-location">
                 
-                {/* ★ OVDE KORISTIMO POPRAVLJENU ZASTAVU */}
                 <img 
                   src={getFlag(result.country)} 
                   alt="flag" 

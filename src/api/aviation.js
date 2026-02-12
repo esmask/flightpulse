@@ -25,7 +25,7 @@ export async function getLiveFlights() {
 }
 
 // === RAPIDAPI SETTINGS ===
-const RAPID_KEY = "78acb83b19msh56397fbb3a839a9p1a8170jsnb07b971ede10";
+const RAPID_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
 const RAPID_HOST = "aerodatabox.p.rapidapi.com";
 
 // === 1) AIRPORT SEARCH ===
@@ -75,8 +75,7 @@ export async function getAirportDetails(iata) {
 export async function getFlightDetails(iataNumber) {
   if (!iataNumber) return null;
 
-  const RAPID_KEY = "78acb83b19msh56397fbb3a839a9p1a8170jsnb07b971ede10";
-  const RAPID_HOST = "aerodatabox.p.rapidapi.com";
+ 
 
   try {
     const res = await axios.get(

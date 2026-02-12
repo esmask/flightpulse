@@ -17,9 +17,8 @@ const Player = lazy(() =>
 
 import planeAnim from "../assets/airplane.json";
 
-// ⚠️ TVOJ API KLJUČ (Zameni 'TVOJ_NOVI_KLJUC' sa onim koji si poslala ako ga nisi obrisala, ali pazi!)
-const OPENAI_API_KEY = "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";
-
+const OPENAI_API_KEY = import.meta.env.VITE_AI_API_KEY; 
+console.log("Moj ključ je:", OPENAI_API_KEY);
 export default function Support() {
   const navigate = useNavigate();
 
@@ -33,30 +32,30 @@ export default function Support() {
   // STATE ZA LIVE CHAT
   const [chatOpen, setChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false); // Da piše "Bot is typing..."
+  const [isTyping, setIsTyping] = useState(false);
   
   const [messages, setMessages] = useState([
-    { sender: "bot", text: "Hi there! 👋 I am FlightPulse AI. Ask me anything about flights, baggage, or airports!" }
+    { sender: "bot", text: "Hi there! 👋 I am FlightPulse AI. I can help you with flights from Prishtina, baggage rules, or airport info!" }
   ]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // --- 1. FUNKCIJA ZA LIVE CHAT BOT (OPENAI) ---
+  // --- 1. POPRAVLJENA FUNKCIJA ZA LIVE CHAT BOT ---
   const handleChatSend = async (e) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
 
-    // 1. Prikazi tvoju poruku odmah
-    const userMsg = { sender: "user", text: chatInput };
-    const currentInput = chatInput; // Cuvamo tekst za slanje
+    const userText = chatInput;
+    const userMsg = { sender: "user", text: userText };
+    
+    // Odmah prikaži korisnikovu poruku
     setMessages((prev) => [...prev, userMsg]);
     setChatInput("");
-    setIsTyping(true); // Pokaži da bot "razmišlja"
+    setIsTyping(true);
 
     try {
-      // 2. Pošalji zahtev OpenAI-ju
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -64,37 +63,49 @@ export default function Support() {
           "Authorization": `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo", // Ili "gpt-4o-mini" ako ti je jeftinije
+          model: "gpt-4o-mini", // Korišćenje modernijeg i stabilnijeg modela
           messages: [
-            { role: "system", content: "You are FlightPulse AI, a helpful assistant for an aviation app. Keep answers short, friendly and related to travel." },
-            ...messages.map(m => ({ role: m.sender === "user" ? "user" : "assistant", content: m.text })), // Istorija chata
-            { role: "user", content: currentInput }
-          ]
+            { 
+              role: "system", 
+              content: "You are FlightPulse AI, the professional assistant for Prishtina International Airport (PRN). " +
+                       "CRITICAL RULE: You only answer questions related to aviation, flights, baggage, and airport services. " + 
+                       "If the user asks about anything else (cooking, politics, jokes, etc.), you must say: " +
+                       "'I am sorry, I am only trained to assist with flight and travel-related inquiries for FlightPulse.' " +
+                       "Keep your answers short and professional."
+            },
+            ...messages.map(m => ({ 
+              role: m.sender === "user" ? "user" : "assistant", 
+              content: m.text 
+            })),
+            { role: "user", content: userText }
+          ],
+          temperature: 0.5
         })
       });
 
       const data = await response.json();
 
+      if (!response.ok) {
+        throw new Error(data.error?.message || "API Error");
+      }
+
       if (data.choices && data.choices.length > 0) {
         const botReply = data.choices[0].message.content;
         setMessages((prev) => [...prev, { sender: "bot", text: botReply }]);
-      } else {
-        throw new Error("No response");
       }
 
     } catch (error) {
       console.error("Chat Error:", error);
-      setMessages((prev) => [...prev, { sender: "bot", text: "Sorry, I'm having trouble connecting to the server right now. 🔌" }]);
+      setMessages((prev) => [...prev, { 
+        sender: "bot", 
+        text: "I'm having a brief connection issue. Please check your internet or try again in a few seconds! ✈️" 
+      }]);
     } finally {
       setIsTyping(false);
     }
   };
 
-  // --- 2. OSTALE FUNKCIJE ---
-  const openAirportGuide = () => {
-    navigate("/airports");
-  };
-
+  // --- 2. EMAILJS FUNKCIJA ---
   const handleSendEmail = (e) => {
     e.preventDefault();
     if (!email || !message || !name) return alert("Please fill in all fields.");
@@ -102,22 +113,26 @@ export default function Support() {
     setLoading(true);
 
     const serviceID = "service_4mx7i43";
-    const templateID = "template_yos2qal"; // Tvoj novi template ID
+    const templateID = "template_yos2qal";
     const publicKey = "zfGOwg5uumkzYOGK3";
 
     const templateParams = { name, email, message };
 
     emailjs.send(serviceID, templateID, templateParams, publicKey)
       .then(() => {
-        alert("✅ Message sent! Check your email.");
+        alert("✅ Message sent! Our team will contact you soon.");
         setModalOpen(false);
         setName(""); setEmail(""); setMessage("");
       })
       .catch((err) => {
         console.error("FAILED...", err);
-        alert("Failed to send. Please try again.");
+        alert("Failed to send message. Please try again.");
       })
       .finally(() => setLoading(false));
+  };
+
+  const openAirportGuide = () => {
+    navigate("/airports");
   };
 
   const openModalWithTopic = (topic) => {
@@ -144,13 +159,13 @@ export default function Support() {
                 {msg.text}
               </div>
             ))}
-            {isTyping && <div className="chat-message bot">Thinking... 🤔</div>}
+            {isTyping && <div className="chat-message bot">Thinking... 🤖</div>}
           </div>
 
           <form className="chat-footer" onSubmit={handleChatSend}>
             <input 
               type="text" 
-              placeholder="Ask me anything..." 
+              placeholder="Ask me about PRN flights..." 
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
             />
@@ -197,9 +212,7 @@ export default function Support() {
               <input 
                 type="text" 
                 placeholder="Type your question..." 
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => { if(e.key === "Enter" && message.trim()) setModalOpen(true); }}
+                onKeyDown={(e) => { if(e.key === "Enter") setModalOpen(true); }}
               />
             </div>
           </div>
@@ -251,7 +264,6 @@ export default function Support() {
             <span className="sup-link">Request Help →</span>
           </div>
 
-          {/* --- LIVE CHAT CARD (Sada koristi AI) --- */}
           <div className="sup-card contact-card">
             <div className="icon-box special"><FaHeadset /></div>
             <h3>AI Support</h3>
